@@ -1,0 +1,88 @@
+#1.Load and visualize dataset (optional PCA for 2D view).
+
+# Import required libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
+
+# Load the dataset
+df = pd.read_csv("../input/mall-customer-segmentation-dataset/Mall_Customers.csv")
+df.head()
+
+output:
+
+	CustomerID	Gender	Age	Annual Income (k$)	Spending Score (1-100)
+0	1	Male	19	15	39
+1	2	Male	21	15	81
+2	3	Female	20	16	6
+3	4	Female	23	16	77
+4	5	Female	31	17	40
+
+
+# 2. Fit K-Means and Assign Cluster Labels
+from sklearn.cluster import KMeans
+
+# Select features for clustering
+X = df[['Annual Income (k$)', 'Spending Score (1-100)']]
+
+# Fit KMeans
+kmeans = KMeans(n_clusters=5, random_state=42)
+df['Cluster'] = kmeans.fit_predict(X)
+
+# Preview with cluster column
+df.head()
+
+output:
+	CustomerID	Gender	Age	Annual Income (k$)	Spending Score (1-100)	Cluster
+0	1	Male	19	15	39	2
+1	2	Male	21	15	81	3
+2	3	Female	20	16	6	2
+3	4	Female	23	16	77	3
+4	5	Female	31	17	40	2
+
+
+#3. Use the Elbow Method to Find Optimal K
+
+inertia = []
+K_range = range(1, 11)
+
+for k in K_range:
+    km = KMeans(n_clusters=k, random_state=42)
+    km.fit(X)
+    inertia.append(km.inertia_)
+
+# Plot elbow curve
+plt.figure(figsize=(8, 5))
+plt.plot(K_range, inertia, marker='o')
+plt.title("Elbow Method to Determine Optimal K")
+plt.xlabel("Number of Clusters")
+plt.ylabel("Inertia")
+plt.grid(True)
+plt.show()
+
+
+#4.Visualize Clusters with Color-Coding
+
+# Visualize clusters
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='Annual Income (k$)', y='Spending Score (1-100)', 
+                hue='Cluster', palette='Set2', data=df, s=100)
+
+plt.title("K-Means Customer Segments")
+plt.xlabel("Annual Income (k$)")
+plt.ylabel("Spending Score (1-100)")
+plt.legend(title='Cluster')
+plt.show()
+
+# 5.Evaluate Using Silhouette Score
+
+from sklearn.metrics import silhouette_score
+
+score = silhouette_score(X, df['Cluster'])
+print(f"Silhouette Score: {score:.3f}")
+
+output:
+Silhouette Score: 0.554
+
+
